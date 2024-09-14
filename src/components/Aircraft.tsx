@@ -13,103 +13,132 @@ interface Aircraft {
 
 const Aircraft: React.FC = () => {
   const [aircraft, setAircraft] = useState<Aircraft[]>([]);
-  const [newAircraft, setNewAircraft] = useState({ registration: '', model: '', owner: '' });
+  const [newAircraft, setNewAircraft] = useState({
+    registration: '',
+    model: '',
+    owner: '',
+    total_flight_hours: 0
+  });
   const [editingAircraft, setEditingAircraft] = useState<Aircraft | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     fetchAircraft();
   }, []);
 
   const fetchAircraft = async () => {
-    const response = await axios.get('/api/aircraft');
-    setAircraft(response.data);
+    try {
+      const response = await axios.get('/api/aircraft');
+      setAircraft(response.data);
+    } catch (err) {
+      setError('Failed to fetch aircraft');
+    }
   };
 
   const createAircraft = async (e: React.FormEvent) => {
     e.preventDefault();
-    await axios.post('/api/aircraft', newAircraft);
-    setNewAircraft({ registration: '', model: '', owner: '' });
-    fetchAircraft();
+    try {
+      await axios.post('/api/aircraft', newAircraft);
+      setNewAircraft({ registration: '', model: '', owner: '', total_flight_hours: 0 });
+      fetchAircraft();
+    } catch (err) {
+      setError('Failed to create aircraft');
+    }
   };
 
   const updateAircraft = async (e: React.FormEvent) => {
     e.preventDefault();
     if (editingAircraft) {
-      await axios.put('/api/aircraft', editingAircraft);
-      setEditingAircraft(null);
-      fetchAircraft();
+      try {
+        await axios.put('/api/aircraft', editingAircraft);
+        setEditingAircraft(null);
+        fetchAircraft();
+      } catch (err) {
+        setError('Failed to update aircraft');
+      }
     }
   };
 
   const deleteAircraft = async (id: number) => {
-    await axios.delete(`/api/aircraft?id=${id}`);
-    fetchAircraft();
+    try {
+      await axios.delete(`/api/aircraft?id=${id}`);
+      fetchAircraft();
+    } catch (err) {
+      setError('Failed to delete aircraft');
+    }
   };
 
   return (
     <div>
       <h1>Aircraft Management</h1>
       
-      {/* Create Aircraft Form */}
-        <h2>Add Aircraft</h2>
+      {error && <p style={{ color: 'red' }}>{error}</p>}
+
+      <h2>Add Aircraft</h2>
       <form onSubmit={createAircraft}>
-        {/* ... (input fields for registration, model, owner) */}
         <input
           type="text"
           value={newAircraft.registration}
           onChange={(e) => setNewAircraft({ ...newAircraft, registration: e.target.value })}
           placeholder="Registration"
+          required
         />
         <input
           type="text"
           value={newAircraft.model}
           onChange={(e) => setNewAircraft({ ...newAircraft, model: e.target.value })}
           placeholder="Model"
+          required
         />
         <input
           type="text"
           value={newAircraft.owner}
           onChange={(e) => setNewAircraft({ ...newAircraft, owner: e.target.value })}
           placeholder="Owner"
+          required
         />
-        {/* <input
+        <input
           type="number"
           value={newAircraft.total_flight_hours}
           onChange={(e) => setNewAircraft({ ...newAircraft, total_flight_hours: parseInt(e.target.value) })}
-          placeholder="Total Flight Hours" 
-        /> We will add this if we want to add the aircraft with different flight hours*/}
+          placeholder="Total Flight Hours"
+          required
+        />
         <button type="submit">Add Aircraft</button>
       </form>
 
-      {/* Aircraft List */}
+      <h2>Aircraft List</h2>
       <ul>
         {aircraft.map((a) => (
           <li key={a.id}>
             {editingAircraft && editingAircraft.id === a.id ? (
               <form onSubmit={updateAircraft}>
-                {/* ... (input fields for editing) */}
                 <input
                   type="text"
                   value={editingAircraft.registration}
                   onChange={(e) => setEditingAircraft({ ...editingAircraft, registration: e.target.value })}
+                  required
                 />
                 <input
                   type="text"
                   value={editingAircraft.model}
                   onChange={(e) => setEditingAircraft({ ...editingAircraft, model: e.target.value })}
+                  required
                 />
                 <input
                   type="text"
                   value={editingAircraft.owner}
                   onChange={(e) => setEditingAircraft({ ...editingAircraft, owner: e.target.value })}
+                  required
                 />
                 <input
                   type="number"
                   value={editingAircraft.total_flight_hours}
                   onChange={(e) => setEditingAircraft({ ...editingAircraft, total_flight_hours: parseInt(e.target.value) })}
+                  required
                 />
                 <button type="submit">Save</button>
-                <button onClick={() => setEditingAircraft(null)}>Cancel</button>
+                <button type="button" onClick={() => setEditingAircraft(null)}>Cancel</button>
               </form>
             ) : (
               <>
