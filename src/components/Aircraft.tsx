@@ -14,6 +14,7 @@ interface Aircraft {
 const Aircraft: React.FC = () => {
   const [aircraft, setAircraft] = useState<Aircraft[]>([]);
   const [newAircraft, setNewAircraft] = useState({ registration: '', model: '', owner: '' });
+  const [editingAircraft, setEditingAircraft] = useState<Aircraft | null>(null);
 
   useEffect(() => {
     fetchAircraft();
@@ -31,34 +32,92 @@ const Aircraft: React.FC = () => {
     fetchAircraft();
   };
 
+  const updateAircraft = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (editingAircraft) {
+      await axios.put('/api/aircraft', editingAircraft);
+      setEditingAircraft(null);
+      fetchAircraft();
+    }
+  };
+
+  const deleteAircraft = async (id: number) => {
+    await axios.delete(`/api/aircraft?id=${id}`);
+    fetchAircraft();
+  };
+
   return (
     <div>
-      <h1>Aircraft</h1>
+      <h1>Aircraft Management</h1>
+      
+      {/* Create Aircraft Form */}
+        <h2>Add Aircraft</h2>
       <form onSubmit={createAircraft}>
+        {/* ... (input fields for registration, model, owner) */}
         <input
           type="text"
-          placeholder="Registration"
           value={newAircraft.registration}
           onChange={(e) => setNewAircraft({ ...newAircraft, registration: e.target.value })}
+          placeholder="Registration"
         />
         <input
           type="text"
-          placeholder="Model"
           value={newAircraft.model}
           onChange={(e) => setNewAircraft({ ...newAircraft, model: e.target.value })}
+          placeholder="Model"
         />
         <input
           type="text"
-          placeholder="Owner"
           value={newAircraft.owner}
           onChange={(e) => setNewAircraft({ ...newAircraft, owner: e.target.value })}
+          placeholder="Owner"
         />
+        {/* <input
+          type="number"
+          value={newAircraft.total_flight_hours}
+          onChange={(e) => setNewAircraft({ ...newAircraft, total_flight_hours: parseInt(e.target.value) })}
+          placeholder="Total Flight Hours" 
+        /> We will add this if we want to add the aircraft with different flight hours*/}
         <button type="submit">Add Aircraft</button>
       </form>
+
+      {/* Aircraft List */}
       <ul>
         {aircraft.map((a) => (
           <li key={a.id}>
-            {a.registration} - {a.model} - Owned by: {a.owner} - {a.total_flight_hours} hours
+            {editingAircraft && editingAircraft.id === a.id ? (
+              <form onSubmit={updateAircraft}>
+                {/* ... (input fields for editing) */}
+                <input
+                  type="text"
+                  value={editingAircraft.registration}
+                  onChange={(e) => setEditingAircraft({ ...editingAircraft, registration: e.target.value })}
+                />
+                <input
+                  type="text"
+                  value={editingAircraft.model}
+                  onChange={(e) => setEditingAircraft({ ...editingAircraft, model: e.target.value })}
+                />
+                <input
+                  type="text"
+                  value={editingAircraft.owner}
+                  onChange={(e) => setEditingAircraft({ ...editingAircraft, owner: e.target.value })}
+                />
+                <input
+                  type="number"
+                  value={editingAircraft.total_flight_hours}
+                  onChange={(e) => setEditingAircraft({ ...editingAircraft, total_flight_hours: parseInt(e.target.value) })}
+                />
+                <button type="submit">Save</button>
+                <button onClick={() => setEditingAircraft(null)}>Cancel</button>
+              </form>
+            ) : (
+              <>
+                {a.registration} - {a.model} - Owned by: {a.owner} - {a.total_flight_hours} hours
+                <button onClick={() => setEditingAircraft(a)}>Edit</button>
+                <button onClick={() => deleteAircraft(a.id)}>Delete</button>
+              </>
+            )}
           </li>
         ))}
       </ul>
