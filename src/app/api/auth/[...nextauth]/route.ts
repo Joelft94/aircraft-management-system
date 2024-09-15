@@ -1,15 +1,15 @@
-import NextAuth from "next-auth"
+import NextAuth, { NextAuthOptions } from "next-auth"
 import CredentialsProvider from "next-auth/providers/credentials"
 import { Pool } from 'pg'
 import bcrypt from 'bcryptjs'
 import { JWT } from 'next-auth/jwt'
-import {Session} from 'next-auth'
+import { randomBytes } from "crypto"
 
 const authPool = new Pool({
-  connectionString: process.env.AUTH_DATABASE_URL, // Remember to add this to your .env.local file
+  connectionString: process.env.AUTH_DATABASE_URL,
 })
 
-const handler = NextAuth({
+export const authOptions: NextAuthOptions = {
   providers: [
     CredentialsProvider({
       name: 'Credentials',
@@ -32,26 +32,26 @@ const handler = NextAuth({
       }
     })
   ],
+  secret: process.env.AUTH_SECRET,
   callbacks: {
     async jwt({ token, user }: { token: JWT, user: any }) {
       if (user) {
-        return {
-          ...token,
-          id: user.id
-        }
+        token.userId = user.id
       }
       return token
     },
     async session({ session, token }: { session: any, token: JWT }) {
       if (session.user) {
-        session.user.id = token.id as string || undefined
+        session.user.id = token.userId as string
       }
       return session
-    }
+    },
   },
   pages: {
     signIn: '/login',
   },
-})
+}
+
+const handler = NextAuth(authOptions)
 
 export { handler as GET, handler as POST }
