@@ -1,0 +1,144 @@
+openapi: 3.0.0
+info:
+  title: Aircraft Management API
+  version: 1.0.0
+  description: API for managing aircraft operations
+
+paths:
+  /api/aircraft:
+    post:
+      summary: Create a new aircraft
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewAircraft'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Aircraft'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+    get:
+      summary: Retrieve aircraft
+      parameters:
+        - in: query
+          name: id
+          schema:
+            type: number
+          required: false
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Aircraft'
+    put:
+      summary: Update an aircraft
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateAircraft'
+      responses:
+        '200':
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Aircraft'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+    delete:
+      summary: Delete an aircraft
+      parameters:
+        - in: query
+          name: id
+          schema:
+            type: number
+          required: true
+      responses:
+        '200':
+          description: Deleted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+components:
+  schemas:
+    Aircraft:
+      type: object
+      properties:
+        id:
+          type: number
+        registration:
+          type: string
+        model:
+          type: string
+        owner:
+          type: string
+        total_flight_hours:
+          type: number
+    NewAircraft:
+      type: object
+      required:
+        - registration
+        - model
+        - owner
+        - total_flight_hours
+      properties:
+        registration:
+          type: string
+        model:
+          type: string
+        owner:
+          type: string
+        total_flight_hours:
+          type: number
+          minimum: 0
+    UpdateAircraft:
+      type: object
+      required:
+        - id
+        - registration
+        - model
+        - owner
+        - total_flight_hours
+      properties:
+        id:
+          type: number
+        registration:
+          type: string
+        model:
+          type: string
+        owner:
+          type: string
+        total_flight_hours:
+          type: number
+          minimum: 0
+  responses:
+    BadRequest:
+      description: Bad Request
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              errors:
+                type: array
+                items:
+                  type: string
