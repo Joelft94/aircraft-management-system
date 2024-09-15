@@ -14,6 +14,7 @@ const Navigation: React.FC = () => {
           <Link href="/add-flight">Add Flight</Link>
         </li>
       </ul>
+      <Link href="/api-docs">API Documentation</Link>
     </nav>
   );
 };
